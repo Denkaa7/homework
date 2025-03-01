@@ -1,0 +1,75 @@
+version: '3'
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.47.2
+    container_name: bednikdo-netology-prometheus
+    command: --web.enable-lifecycle --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    networks:
+      - bednikdo-my-netology-hw
+    restart: always
+
+  pushgateway:
+    image: prom/pushgateway:v1.6.2
+    container_name: bednikdo-netology-pushgateway
+    ports:
+      - 9091:9091
+    networks:
+    - bednikdo-my-netology-hw
+    depends_on:
+      - prometheus
+    restart: always
+
+  grafana:
+    image: grafana/grafana
+    container_name: bednikdo-netology-grafana
+    environment:
+      GF_PATHS_CONFIG: /etc/grafana/custom.ini
+    ports:
+      - 80:3000
+    volumes:
+      - ./grafana:/etc/grafana
+      - grafana-data:/var/lib/grafana
+    networks:
+      - bednikdo-my-netology-hw
+    depends_on:
+      - pushgateway
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: bednikdo-netology-alertmanager
+    command: --config.file=/etc/alertmanager/alertmanager.yml
+    ports:
+      - 9093:9093
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+      - alertmanager-data:/data
+    networks:
+      - bednikdo-my-netology-hw
+    depends_on:
+      - grafana
+    restart: always
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:
+
+networks:
+  bednikdo-my-netology-hw:
+    name: "bednikdo-my-netology-hw"
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
+  
+
+

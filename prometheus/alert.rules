@@ -1,0 +1,7 @@
+groups:
+  - name: Netology
+    rules:
+      - alert: Danger
+        expr: bednikdo{job="netology"} > 1
+        for: 10s
+    
